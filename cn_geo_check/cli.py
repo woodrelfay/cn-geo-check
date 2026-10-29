@@ -11,7 +11,7 @@ import csv
 import sys
 from pathlib import Path
 
-from .generator import ENGINES, SCORE_DIMS, TEST_RULES, BrandProfile, generate_questions
+from .generator import ACCOUNT_RULES, ENGINES, SCORE_DIMS, TEST_RULES, BrandProfile, generate_questions
 from .sitecheck import check_site
 
 
@@ -23,6 +23,8 @@ def render_questions_md(p: BrandProfile, questions) -> str:
              f"- 问题总数：{len(questions)}（四组各 3 题）｜测试引擎：{'、'.join(e['name'] for e in ENGINES)}",
              "", "## 测试铁律（先看完再测）", ""]
     lines += [f"{i}. {r}" for i, r in enumerate(TEST_RULES, 1)]
+    lines += ["", "## 测试账号规范（登录时代的测法）", ""]
+    lines += [f"{i}. {r}" for i, r in enumerate(ACCOUNT_RULES, 1)]
     lines += ["", "## 引擎测试卡", ""]
     for e in ENGINES:
         lines.append(f"- **{e['name']}** {e['url']} — {e['note']}")
