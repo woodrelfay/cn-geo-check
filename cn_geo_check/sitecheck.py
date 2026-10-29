@@ -85,17 +85,28 @@ def check_site(base_url: str) -> list[CheckItem]:
     status, _ = _fetch(base + "/llms.txt")
     if status == 200:
         items.append(CheckItem("llms.txt", "通过", "已提供 llms.txt，AI 可快速获取站点结构索引"))
+    elif status == 0:
+        items.append(CheckItem("llms.txt", "未检测",
+                               "网络请求失败，无法确认 llms.txt 是否存在（不能据此判断为没有）"))
     else:
         items.append(CheckItem("llms.txt", "提醒",
                                "没有 llms.txt。它不是排名因素，但成本极低，属于顺手可做的加分项"))
 
     status, _ = _fetch(base + "/sitemap.xml")
-    items.append(CheckItem("sitemap.xml", "通过" if status == 200 else "提醒",
-                           "sitemap 存在，爬虫可系统抓取全站" if status == 200
-                           else "未找到 sitemap.xml，爬虫只能靠链接发现页面"))
+    if status == 200:
+        items.append(CheckItem("sitemap.xml", "通过", "sitemap 存在，爬虫可系统抓取全站"))
+    elif status == 0:
+        items.append(CheckItem("sitemap.xml", "未检测",
+                               "网络请求失败，无法确认 sitemap 是否存在（不能据此判断为没有）"))
+    else:
+        items.append(CheckItem("sitemap.xml", "提醒", "未找到 sitemap.xml，爬虫只能靠链接发现页面"))
 
     status, html = _fetch(base + "/")
-    if status == 200 and html:
+    if status == 200 and html and len(html) < 2000:
+        items.append(CheckItem("首页结构化数据", "未检测",
+                               f"首页只返回 {len(html)} 字节，疑似 JS 渲染壳页面，真实内容靠脚本加载，"
+                               "静态抓取看不到结构化数据；请在浏览器里查看页面源码人工确认"))
+    elif status == 200 and html:
         s = detect_schema(html)
         if s["faq"]:
             items.append(CheckItem("FAQ 结构化数据", "通过",
